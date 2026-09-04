@@ -1,0 +1,16 @@
+# generated RRDs (outputs, not source)
+out/
+
+# local run state & logs
+state.db
+state.db-wal
+state.db-shm
+loop.out
+cycles.jsonl
+
+# python
+__pycache__/
+*.pyc
+
+# misc
+.DS_Store

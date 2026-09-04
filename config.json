@@ -1,0 +1,45 @@
+{
+  "field": "ai agent self improvement",
+  "arxiv": {
+    "categories": ["cs.AI", "cs.LG", "cs.CL", "cs.MA"],
+    "queries": null,
+    "per_query": 15,
+    "max_age_days": 30
+  },
+  "evaluate": {
+    "pursue_threshold": 7,
+    "watch_threshold": 4
+  },
+  "related": {
+    "enabled": true,
+    "arxiv_results": 6,
+    "web_search_results": 4,
+    "skill_dir": "/home/ak/.pi/agent/skills/web-search/scripts"
+  },
+  "rrd": {
+    "dir": "out",
+    "write_watch": true,
+    "write_if_saturated": false
+  },
+  "grill": {
+    "enabled": true,
+    "max_rounds": 2,
+    "max_searches": 2,
+    "max_iterations": 2,
+    "min_survival": 4,
+    "write_if_wounded": true
+  },
+  "limits": {
+    "max_items_per_cycle": 6,
+    "max_reqs_per_paper": 2
+  },
+  "vllm": {
+    "base_url": "http://localhost:8000/v1",
+    "model": "qwen3.8-27b",
+    "max_tokens": 4096,
+    "timeout_sec": 600
+  },
+  "loop": {
+    "interval_sec": 1200
+  }
+}
