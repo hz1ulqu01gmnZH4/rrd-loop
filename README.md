@@ -40,6 +40,7 @@ python3 run.py --status                          # state: papers seen, reqs, RRD
 python3 run.py --papers-only                    # fetch+dedupe papers (no LLM)
 python3 run.py --once                           # one full cycle
 python3 run.py --once --field "ai agent self improvement" --items 2 --debug
+python3 run.py --once --language en             # generate RRDs in English (default: Japanese)
 nohup python3 -u run.py --loop --interval 1200 > loop.out 2>&1 &   # run forever
 ```
 
@@ -49,7 +50,7 @@ Cycle results append to `cycles.jsonl`.
 
 | file | role |
 |---|---|
-| `run.py` | CLI (`--once`, `--loop`, `--papers-only`, `--status`, `--items`, `--interval`, `--field`, `--debug`) |
+| `run.py` | CLI (`--once`, `--loop`, `--papers-only`, `--status`, `--items`, `--interval`, `--field`, `--language`, `--debug`) |
 | `cycle.py` | one cycle: fetch → dedupe → per-paper stages → log to `cycles.jsonl` |
 | `paper.py` | keyless arXiv API fetcher + field→query derivation + keyword (saturation) search |
 | `pipeline.py` | the 4 stages + prompt constants (tune prompts here) |
@@ -104,6 +105,7 @@ Success criteria (90-day) · Related papers.
 - `evaluate.pursue_threshold / watch_threshold` — verdict gates (7 / 4).
 - `rrd.write_watch` — also write RRDs for WATCH.
 - `rrd.write_if_saturated` — write RRDs even when the field is saturated.
+- `rrd.language` (default `"ja"`; CLI: `--language`) — the language the generated RRD document is written in, headings included; the intermediate pipeline stages stay in English and the writer translates their output. Accepts ISO codes (`ja`, `en`, `zh`, `zh-cn`, `zh-tw`, `ko`, `fr`, `de`, `es`) or a free-form language name (e.g. `"Korean"`). The HTML page gets the matching `<html lang>` attribute.
 - `grill.enabled / max_rounds / max_searches / min_survival / write_if_wounded` — the grill stage (section above).
 - `grill.max_iterations` (default 2) — grill -> improve -> grill loop bound: total grill passes when the loop never passes early = max_iterations (pass 1 is the unimproved requirement).
 - `vllm.*` — endpoint/model for the LLM driver (sends

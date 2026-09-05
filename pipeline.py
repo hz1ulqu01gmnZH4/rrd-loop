@@ -15,6 +15,36 @@ import requests
 
 FIELD_CFG = "field"  # cfg key: the research field being narrowed to
 
+# ---------------------------------------------------------------------------
+# Document language: rrd.language (default "ja"). The final RRD document is
+# written in this language; all intermediate stages (synth/evaluate/grill) stay
+# in English and their output is translated by the writer. ISO code -> natural
+# language name; unknown values pass through as free-form language names.
+# ---------------------------------------------------------------------------
+_LANG_NAMES = {
+    "ja": "Japanese", "ja-jp": "Japanese", "en": "English",
+    "zh": "Simplified Chinese", "zh-cn": "Simplified Chinese",
+    "zh-tw": "Traditional Chinese", "ko": "Korean",
+    "fr": "French", "de": "German", "es": "Spanish",
+}
+
+
+def _doc_lang(cfg):
+    """(html lang attr, prompt language name) for the generated RRD."""
+    raw = str(cfg.get("rrd", {}).get("language", "ja")).strip()
+    code = raw.lower()
+    return code, _LANG_NAMES.get(code, raw)
+
+
+def _lang_directive(lang):
+    """Output-language instruction for the writer prompt ('' for English)."""
+    if lang.lower() == "english":
+        return ""
+    return (f"LANGUAGE: Write the ENTIRE document in {lang} - translate the H1 title, all section headings "
+            f"(the names listed below) and every sentence of prose into natural, fluent {lang} suitable for a "
+            f"professional document. Keep unchanged: URLs, arXiv identifiers, acronyms, code, and English paper "
+            f"titles (a brief parenthetical translation is ok). No mixed-language prose otherwise.")
+
 
 # ---------------------------------------------------------------------------
 # 1. SYNTH: paper (+ field) -> candidate research requirements
@@ -187,9 +217,11 @@ Search results (arXiv + web):
 # ---------------------------------------------------------------------------
 # 4. WRITE: scored requirement + related scan + grill -> RRD (md -> HTML)
 # ---------------------------------------------------------------------------
-def _rrd_system(title, field):
+def _rrd_system(title, field, lang="Japanese"):
+    d = _lang_directive(lang)
+    lang_block = (d + "\n") if d else ""
     return f"""You are a research program lead writing a RESEARCH REQUIREMENT DOCUMENT (RRD) for a small group (1-5 people) committing to a research direction in the field: {field}.
-Write tight markdown, 600-900 words, exactly these sections in this order:
+{lang_block}Write tight markdown, 600-900 words, exactly these sections in this order:
 # {title}
 ## Field & why now
 ## Prior work & gap   (cite the provided related items; state precisely what is missing)
@@ -226,7 +258,8 @@ Source paper:
 Title: {paper_item['title']}
 arXiv: {paper_item.get('url')}
 Abstract: {(paper_item.get('abstract') or '')[:600]}"""
-    md = llm.chat(_rrd_system(req.get("title", "Requirement"), cfg.get(FIELD_CFG, "")), user)
+    md = llm.chat(_rrd_system(req.get("title", "Requirement"), cfg.get(FIELD_CFG, ""),
+                              _doc_lang(cfg)[1]), user)
     md = md.strip()
     if not md.startswith("# "):
         m = re.search(r"\n# ", md)
@@ -267,7 +300,7 @@ def save_rrd(cfg, paper_item, req, ev, rel, md, grill=None, history=None):
     with open(path, "w") as f:
         f.write(render.render_rrd(req.get("title", "RRD"), ev["verdict"], ev, rel,
                                   paper_item, md, generated=_time.strftime("%Y-%m-%d %H:%M"),
-                                  grill=grill, history=history))
+                                  grill=grill, history=history, lang=_doc_lang(cfg)[0]))
     return path
 
 

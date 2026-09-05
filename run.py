@@ -8,6 +8,7 @@ Usage:
   python3 run.py --papers-only     # just fetch+dedupe papers, no LLM
   python3 run.py --status          # show state: counts + recent RRDs
   python3 run.py --once --field "ai agent self improvement" --items 2 --debug
+  python3 run.py --once --language ja   # write RRDs in Japanese (config default)
 """
 import argparse
 import json
@@ -37,6 +38,7 @@ def main():
     ap.add_argument("--cycles", type=int, help="stop after N cycles (with --loop)")
     ap.add_argument("--items", type=int, help="max papers per cycle")
     ap.add_argument("--field", help="research field to narrow to (overrides config)")
+    ap.add_argument("--language", help="document language for generated RRDs, e.g. ja/en (overrides config, default ja)")
     ap.add_argument("--debug", action="store_true")
     ap.add_argument("--config", help="alternate config.json")
     a = ap.parse_args()
@@ -45,10 +47,12 @@ def main():
     if a.field:
         cfg["field"] = a.field
         cfg.setdefault("arxiv", {})["queries"] = None  # re-derive for the new field
+    if a.language:
+        cfg.setdefault("rrd", {})["language"] = a.language
 
     if a.status:
         st = state_mod.State(os.path.join(BASE, "state.db"))
-        print(f"field: {cfg.get('field')}")
+        print(f"field: {cfg.get('field')} | doc language: {cfg.get('rrd', {}).get('language', 'ja')}")
         print(json.dumps(st.counts(), indent=2))
         print("recent RRDs:")
         for p in st.recent_rrds(10):
@@ -65,7 +69,7 @@ def main():
     if not L.ping():
         print(f"vllm not reachable at {L.base} -- is `vllm serve` running?")
         return
-    print(f"vllm ok: {L.base} model={L.model} | field: {cfg.get('field')}")
+    print(f"vllm ok: {L.base} model={L.model} | field: {cfg.get('field')} | doc language: {cfg.get('rrd', {}).get('language', 'ja')}")
 
     cycles_done = 0
     while True:

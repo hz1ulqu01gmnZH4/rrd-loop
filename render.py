@@ -3,10 +3,10 @@ import html as _html
 import re
 
 PAGE = """<!doctype html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="{lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title}</title>
 <style>
-body{{font:16px/1.55 -apple-system,'Segoe UI',Roboto,sans-serif;max-width:46rem;margin:3rem auto;padding:0 1rem;color:#1a1a1a}}
+body{{font:16px/1.55 -apple-system,'Segoe UI',Roboto,'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP','Yu Gothic','Meiryo',sans-serif;max-width:46rem;margin:3rem auto;padding:0 1rem;color:#1a1a1a}}
 h1{{font-size:1.6rem;line-height:1.25;margin-bottom:.4rem}}
 h2{{font-size:1.25rem;margin-top:1.7rem;border-bottom:1px solid #ddd;padding-bottom:.2rem}}
 h3{{font-size:1.05rem;margin-top:1.2rem}}
@@ -66,7 +66,7 @@ def md2html(md):
     return "\n".join(out)
 
 
-def render_rrd(title, verdict, ev, rel, item, md, generated, grill=None, history=None):
+def render_rrd(title, verdict, ev, rel, item, md, generated, grill=None, history=None, lang="ja"):
     s = ev.get("scores", {})
     scores = " ".join(f"{k} <b>{v}</b>" for k, v in s.items())
     rel_names = ", ".join(r.get("title", "?") for r in (rel or {}).get("related", [])[:6]) \
@@ -88,4 +88,4 @@ def render_rrd(title, verdict, ev, rel, item, md, generated, grill=None, history
     body = md2html(md)
     if body.startswith("<h1>"):
         body = body.split("\n", 1)[1] if "\n" in body else ""  # title already in header
-    return PAGE.format(title=_html.escape(title), meta=meta, body=body)
+    return PAGE.format(title=_html.escape(title), lang=(lang or "en"), meta=meta, body=body)

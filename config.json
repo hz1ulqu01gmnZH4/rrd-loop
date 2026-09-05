@@ -19,7 +19,8 @@
   "rrd": {
     "dir": "out",
     "write_watch": true,
-    "write_if_saturated": false
+    "write_if_saturated": false,
+    "language": "ja"
   },
   "grill": {
     "enabled": true,
